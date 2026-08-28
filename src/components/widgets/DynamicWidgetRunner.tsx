@@ -60,7 +60,7 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
 
       {/* SVG Canvas Visual Stage */}
       <div className="w-full bg-slate-900 rounded-lg p-4 flex items-center justify-center min-h-[220px] overflow-hidden relative shadow-inner">
-        <svg viewBox="0 0 400 180" className="w-full h-auto max-h-[200px]">
+        <svg viewBox="0 0 460 180" className="w-full h-auto max-h-[220px]">
           <defs>
             <radialGradient id="bobGradient" cx="30%" cy="30%" r="70%">
               <stop offset="0%" stopColor="#38bdf8" />
