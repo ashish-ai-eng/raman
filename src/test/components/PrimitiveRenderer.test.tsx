@@ -88,4 +88,31 @@ describe("PrimitiveRenderer Component (CL 2.1)", () => {
     expect(container.textContent).toContain("Vernier Scale");
     expect(container.textContent).toContain("Sphere");
   });
+
+  it("renders Pendulum widget setup with fixed support stand, solid string, and bob", () => {
+    const primitive: VisualPrimitive = {
+      type: "bob",
+      id: "bob-1",
+      xExpression: "180",
+      yExpression: "100",
+      properties: { radius: 16, anchorX: 150, anchorY: 15 },
+    };
+
+    const { getByTestId } = render(
+      <svg>
+        <PrimitiveRenderer primitive={primitive} evalContext={{}} />
+      </svg>
+    );
+
+    expect(getByTestId("pendulum-setup")).not.toBeNull();
+    expect(getByTestId("fixed-support-stand")).not.toBeNull();
+    expect(getByTestId("pendulum-string")).not.toBeNull();
+    expect(getByTestId("pendulum-bob")).not.toBeNull();
+
+    const stringLine = getByTestId("pendulum-string");
+    expect(stringLine.getAttribute("x1")).toBe("150");
+    expect(stringLine.getAttribute("y1")).toBe("15");
+    expect(stringLine.getAttribute("x2")).toBe("180");
+    expect(stringLine.getAttribute("y2")).toBe("100");
+  });
 });

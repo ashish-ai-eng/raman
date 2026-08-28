@@ -97,30 +97,46 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
 
     case "bob": {
       const radius = (primitive.properties?.radius as number) || 16;
-      const anchorX = 150;
-      const anchorY = 20;
+      const anchorX = (primitive.properties?.anchorX as number) || 150;
+      const anchorY = (primitive.properties?.anchorY as number) || 15;
       return (
-        <g transform={`scale(${size})`}>
-          {/* String */}
+        <g transform={`scale(${size})`} data-testid="pendulum-setup">
+          {/* Fixed Support Stand & Rigid Ceiling Clamp */}
+          <g data-testid="fixed-support-stand">
+            {/* Top Mounting Plate / Rigid Support Bar */}
+            <rect x={anchorX - 35} y={anchorY - 10} width="70" height="8" fill="#334155" rx="2" stroke="#1e293b" strokeWidth="1" />
+            {/* Diagonal Hatch Lines for Rigid Mounting */}
+            <line x1={anchorX - 25} y1={anchorY - 10} x2={anchorX - 20} y2={anchorY - 15} stroke="#64748b" strokeWidth="1.5" />
+            <line x1={anchorX - 10} y1={anchorY - 10} x2={anchorX - 5} y2={anchorY - 15} stroke="#64748b" strokeWidth="1.5" />
+            <line x1={anchorX + 5} y1={anchorY - 10} x2={anchorX + 10} y2={anchorY - 15} stroke="#64748b" strokeWidth="1.5" />
+            <line x1={anchorX + 20} y1={anchorY - 10} x2={anchorX + 25} y2={anchorY - 15} stroke="#64748b" strokeWidth="1.5" />
+            {/* Pivot Clamp Knob */}
+            <circle cx={anchorX} cy={anchorY} r="4.5" fill="#0284c7" stroke="#0f172a" strokeWidth="1.5" />
+          </g>
+
+          {/* Solid Pendulum String */}
           <line
+            data-testid="pendulum-string"
             x1={anchorX}
             y1={anchorY}
             x2={x}
             y2={y}
-            stroke="#64748b"
-            strokeWidth="2"
-            strokeDasharray="3 3"
+            stroke="#38bdf8"
+            strokeWidth="2.5"
           />
+
           {/* Pendulum Bob */}
-          <circle
-            cx={x}
-            cy={y}
-            r={radius}
-            fill="url(#bobGradient)"
-            stroke="#0f172a"
-            strokeWidth="2"
-          />
-          <circle cx={x - radius / 3} cy={y - radius / 3} r={radius / 4} fill="#ffffff" opacity="0.6" />
+          <g data-testid="pendulum-bob">
+            <circle
+              cx={x}
+              cy={y}
+              r={radius}
+              fill="url(#bobGradient)"
+              stroke="#0f172a"
+              strokeWidth="2"
+            />
+            <circle cx={x - radius / 3} cy={y - radius / 3} r={radius / 4} fill="#ffffff" opacity="0.6" />
+          </g>
         </g>
       );
     }
