@@ -29,6 +29,7 @@ export interface UPROutput {
   unit: string;
   expression: string; // AST expression targeting inputs or intermediate equations
   precision: number;  // Decimal places for visual readout display
+  skipQuantization?: boolean; // Skip instrument least-count rounding (for ratios/reciprocals)
 }
 
 export interface UPRErrorModel {
