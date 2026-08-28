@@ -13,7 +13,8 @@ export interface EvaluatedEngineState {
  */
 export function applyInstrumentError(
   value: number,
-  errorModel?: UPRErrorModel
+  errorModel?: UPRErrorModel,
+  skipQuantization?: boolean
 ): number {
   if (isNaN(value) || !isFinite(value)) return value;
   if (!errorModel) return value;
@@ -25,8 +26,8 @@ export function applyInstrumentError(
     result += errorModel.zeroError;
   }
 
-  // 2. Quantize to least count (instrument resolution)
-  if (typeof errorModel.leastCount === "number" && errorModel.leastCount > 0) {
+  // 2. Quantize to least count (instrument resolution) if not skipped
+  if (!skipQuantization && typeof errorModel.leastCount === "number" && errorModel.leastCount > 0) {
     const factor = 1 / errorModel.leastCount;
     result = Math.round(result * factor) / factor;
   }
@@ -61,11 +62,10 @@ export function evaluateUniversalSpec(
   // 2. Evaluate intermediate equations (Iterative graph resolution)
   const equationsState: Record<string, number> = {};
   const pendingEquations = Object.entries(spec.equations);
-  let resolvedCount = 0;
-  const maxPasses = pendingEquations.length + 1;
-  let pass = 0;
 
   const resolvedEqKeys = new Set<string>();
+  const maxPasses = pendingEquations.length + 1;
+  let pass = 0;
 
   while (resolvedEqKeys.size < pendingEquations.length && pass < maxPasses) {
     pass++;
@@ -87,7 +87,7 @@ export function evaluateUniversalSpec(
       }
     }
 
-    if (!progressThisPass) break; // Cyclic dependency or missing variable
+    if (!progressThisPass) break;
   }
 
   // 3. Evaluate observable outputs
@@ -105,7 +105,11 @@ export function evaluateUniversalSpec(
     rawOutputsState[outKey] = rawVal;
 
     // Apply error model quantization & zero error
-    let formattedVal = applyInstrumentError(rawVal, spec.errorModel);
+    let formattedVal = applyInstrumentError(
+      rawVal,
+      spec.errorModel,
+      outSpec.skipQuantization
+    );
 
     if (typeof outSpec.precision === "number" && !isNaN(formattedVal)) {
       formattedVal = parseFloat(formattedVal.toFixed(outSpec.precision));
