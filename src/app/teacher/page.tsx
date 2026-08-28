@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { LabSpec } from "@/types/labSpec";
 import { simplePendulumPreset, opticsBenchPreset, ohmsLawPreset } from "@/lib/engine/presets";
+import { AnalyticsOverview } from "@/components/teacher/AnalyticsOverview";
 
 // Initial sample seed labs for Teacher Dashboard
 const INITIAL_LABS: LabSpec[] = [
@@ -114,6 +115,9 @@ export default function TeacherDashboard() {
           <span>+ Create New Lab in AI Studio</span>
         </Link>
       </div>
+
+      {/* Teacher Engagement Analytics */}
+      <AnalyticsOverview />
 
       {/* Lab List Grid */}
       <div className="space-y-4">
