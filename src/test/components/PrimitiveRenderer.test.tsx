@@ -62,4 +62,30 @@ describe("PrimitiveRenderer Component (CL 2.1)", () => {
     expect(container.textContent).toContain("Voltmeter");
     expect(container.textContent).toContain("5.25 V");
   });
+
+  it("renders Vernier Caliper instrument with main scale, sliding jaw, and clamped object", () => {
+    const primitive: VisualPrimitive = {
+      type: "vernier_caliper",
+      id: "vernier-1",
+      xExpression: "0",
+      yExpression: "0",
+      properties: {
+        gapExpression: "gap_val",
+        objectType: "sphere",
+        objectLabel: "Sphere",
+      },
+    };
+
+    const { getByTestId, container } = render(
+      <svg>
+        <PrimitiveRenderer primitive={primitive} evalContext={{ gap_val: 2.34 }} />
+      </svg>
+    );
+
+    expect(getByTestId("vernier-caliper-instrument")).not.toBeNull();
+    expect(getByTestId("vernier-sliding-jaw")).not.toBeNull();
+    expect(getByTestId("clamped-object")).not.toBeNull();
+    expect(container.textContent).toContain("Vernier Scale");
+    expect(container.textContent).toContain("Sphere");
+  });
 });

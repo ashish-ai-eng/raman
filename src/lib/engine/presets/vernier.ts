@@ -3,14 +3,14 @@ import { UniversalPhysicsSpec } from "@/types/upr";
 export const vernierCaliperPreset: UniversalPhysicsSpec = {
   id: "preset-vernier-caliper",
   name: "Vernier Caliper Instrument",
-  description: "Precision Vernier Caliper for measuring linear dimensions with zero error calibration.",
+  description: "Precision Vernier Caliper for measuring object dimensions (diameter, length, width) clamped between jaws.",
   inputs: {
     object_size: {
       id: "object_size",
-      label: "Object Diameter (cm)",
+      label: "Object Dimension (cm)",
       type: "slider",
       min: 0.1,
-      max: 10.0,
+      max: 8.0,
       step: 0.01,
       defaultValue: 2.34,
       unit: "cm",
@@ -70,18 +70,16 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
   },
   visuals: [
     {
-      type: "scale",
-      id: "main_scale_body",
+      type: "vernier_caliper",
+      id: "vernier_instrument",
       xExpression: "0",
       yExpression: "0",
-      properties: { label: "Main Scale (cm)" },
-    },
-    {
-      type: "pointer",
-      id: "vernier_jaw",
-      xExpression: "object_size * 20",
-      yExpression: "0",
-      properties: { label: "Vernier Jaw" },
+      properties: {
+        gapExpression: "object_size",
+        objectType: "sphere",
+        objectLabel: "Sphere",
+        scaleFactor: 28,
+      },
     },
   ],
 };

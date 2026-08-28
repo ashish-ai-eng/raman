@@ -178,6 +178,184 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
       );
     }
 
+    case "vernier_caliper": {
+      const scaleFactor = (primitive.properties?.scaleFactor as number) || 25; // px per cm
+      const jawGap = Math.max(0, getNum(primitive.properties?.gapExpression as string, 2.34) * scaleFactor);
+      const objectType = (primitive.properties?.objectType as string) || "sphere";
+      const objectLabel = (primitive.properties?.objectLabel as string) || "Object";
+
+      const originX = 50;
+      const originY = 40;
+      const beamLength = 320;
+      const jawX = originX + jawGap;
+
+      return (
+        <g transform={`translate(${x}, ${y})`} data-testid="vernier-caliper-instrument">
+          {/* Main Beam / Main Scale */}
+          <rect
+            x={originX}
+            y={originY}
+            width={beamLength}
+            height="26"
+            fill="#e2e8f0"
+            stroke="#475569"
+            strokeWidth="1.5"
+            rx="2"
+          />
+
+          {/* Main Scale Graduations (0 to 10 cm) */}
+          {Array.from({ length: 11 }).map((_, cm) => {
+            const cx = originX + cm * scaleFactor;
+            return (
+              <g key={cm}>
+                <line x1={cx} y1={originY} x2={cx} y2={originY + 12} stroke="#334155" strokeWidth="1.2" />
+                <text x={cx} y={originY + 20} fontSize="8" fill="#334155" textAnchor="middle" fontWeight="bold">
+                  {cm}
+                </text>
+                {/* 0.5 cm sub-ticks */}
+                {cm < 10 && (
+                  <line
+                    x1={cx + scaleFactor * 0.5}
+                    y1={originY}
+                    x2={cx + scaleFactor * 0.5}
+                    y2={originY + 7}
+                    stroke="#64748b"
+                    strokeWidth="1"
+                  />
+                )}
+              </g>
+            );
+          })}
+
+          {/* Fixed Left Jaw (Outside & Inside Measuring Jaws) */}
+          <path
+            d={`M ${originX} ${originY} 
+               L ${originX - 18} ${originY + 90} 
+               L ${originX} ${originY + 90} 
+               L ${originX} ${originY + 26} Z`}
+            fill="#cbd5e1"
+            stroke="#334155"
+            strokeWidth="1.5"
+          />
+          {/* Upper Fixed Inside Jaw */}
+          <path
+            d={`M ${originX} ${originY} 
+               L ${originX - 12} ${originY - 30} 
+               L ${originX} ${originY - 30} Z`}
+            fill="#cbd5e1"
+            stroke="#334155"
+            strokeWidth="1.5"
+          />
+
+          {/* Measured Clamped Object */}
+          {jawGap > 0 && (
+            <g data-testid="clamped-object">
+              {objectType === "sphere" ? (
+                <circle
+                  cx={originX + jawGap / 2}
+                  cy={originY + 58}
+                  r={Math.min(38, jawGap / 2)}
+                  fill="#f59e0b"
+                  fillOpacity="0.85"
+                  stroke="#d97706"
+                  strokeWidth="2"
+                />
+              ) : objectType === "cylinder" ? (
+                <rect
+                  x={originX}
+                  y={originY + 28}
+                  width={jawGap}
+                  height="60"
+                  fill="#10b981"
+                  fillOpacity="0.8"
+                  stroke="#059669"
+                  strokeWidth="2"
+                  rx="6"
+                />
+              ) : (
+                <rect
+                  x={originX}
+                  y={originY + 28}
+                  width={jawGap}
+                  height="60"
+                  fill="#8b5cf6"
+                  fillOpacity="0.8"
+                  stroke="#7c3aed"
+                  strokeWidth="2"
+                  rx="2"
+                />
+              )}
+              <text
+                x={originX + jawGap / 2}
+                y={originY + 62}
+                fontSize="10"
+                fill="#0f172a"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                {objectLabel}
+              </text>
+            </g>
+          )}
+
+          {/* Sliding Vernier Frame & Moving Right Jaw */}
+          <g transform={`translate(${jawX}, 0)`} data-testid="vernier-sliding-jaw">
+            {/* Lower Moving Outside Jaw */}
+            <path
+              d={`M 0 ${originY} 
+                 L 18 ${originY + 90} 
+                 L 0 ${originY + 90} 
+                 L 0 ${originY + 26} Z`}
+              fill="#0284c7"
+              fillOpacity="0.85"
+              stroke="#0369a1"
+              strokeWidth="1.5"
+            />
+            {/* Upper Moving Inside Jaw */}
+            <path
+              d={`M 0 ${originY} 
+                 L 12 ${originY - 30} 
+                 L 0 ${originY - 30} Z`}
+              fill="#0284c7"
+              fillOpacity="0.85"
+              stroke="#0369a1"
+              strokeWidth="1.5"
+            />
+            {/* Vernier Scale Window Frame */}
+            <rect
+              x="0"
+              y={originY - 4}
+              width={scaleFactor * 1.2}
+              height="34"
+              fill="#0284c7"
+              fillOpacity="0.25"
+              stroke="#0284c7"
+              strokeWidth="2"
+              rx="3"
+            />
+            {/* Vernier Scale Division Lines (0 to 10 VSD) */}
+            {Array.from({ length: 11 }).map((_, vsd) => {
+              const vx = (vsd * scaleFactor * 0.9) / 10;
+              return (
+                <line
+                  key={vsd}
+                  x1={vx}
+                  y1={originY + 12}
+                  x2={vx}
+                  y2={originY + 24}
+                  stroke="#0369a1"
+                  strokeWidth="1.2"
+                />
+              );
+            })}
+            <text x={scaleFactor * 0.6} y={originY - 8} fontSize="9" fill="#0284c7" fontWeight="bold" textAnchor="middle">
+              Vernier Scale
+            </text>
+          </g>
+        </g>
+      );
+    }
+
     default:
       return null;
   }
