@@ -1,0 +1,80 @@
+import { UniversalPhysicsSpec } from "@/types/upr";
+
+export const vernierCaliperPreset: UniversalPhysicsSpec = {
+  id: "preset-vernier-caliper",
+  name: "Vernier Caliper Laboratory Instrument",
+  description: "Main scale (1 mm MSD), 10-division vernier scale (0.9 mm VSD -> LC = 0.01 cm). Movable jaws, specimen selector (cylinder, sphere, block, coin, pipe), 3.2x magnifying loupe, and zero error offset adjustment (+0.02 cm, -0.03 cm, 0.00 cm).",
+  hasAnimation: false,
+  hasZeroError: true,
+  inputs: {
+    specimen_selection: {
+      id: "specimen_selection",
+      label: "Specimen Selection",
+      type: "select",
+      min: 1,
+      max: 5,
+      step: 1,
+      defaultValue: 1,
+      unit: "",
+      options: [
+        { label: "Steel Bearing Sphere (d = 2.34 cm)", value: 1 },
+        { label: "Brass Cylinder (d = 4.50 cm)", value: 2 },
+        { label: "Aluminum Block (w = 1.80 cm)", value: 3 },
+        { label: "Bronze Coin (d = 1.92 cm)", value: 4 },
+        { label: "Copper Pipe (Outer d = 3.10 cm)", value: 5 },
+      ],
+    },
+    specimen_dimension: {
+      id: "specimen_dimension",
+      label: "Fine Dimension Adjust (cm)",
+      type: "slider",
+      min: 0.1,
+      max: 8.0,
+      step: 0.01,
+      defaultValue: 2.34,
+      unit: "cm",
+    },
+    zero_error_cm: {
+      id: "zero_error_cm",
+      label: "Zero Error Offset (cm)",
+      type: "slider",
+      min: -0.1,
+      max: 0.1,
+      step: 0.01,
+      defaultValue: 0.02,
+      unit: "cm",
+    },
+  },
+  equations: {
+    msd_cm: { id: "msd_cm", expression: "0.1" },
+    vsd_cm: { id: "vsd_cm", expression: "0.09" },
+    least_count: { id: "least_count", expression: "0.01" },
+    raw_reading: { id: "raw_reading", expression: "specimen_dimension + zero_error_cm" },
+    main_scale_reading: { id: "main_scale_reading", expression: "floor(raw_reading * 10) / 10" },
+    vernier_coincidence: { id: "vernier_coincidence", expression: "round((raw_reading - main_scale_reading) / 0.01)" },
+    observed_reading: { id: "observed_reading", expression: "main_scale_reading + (vernier_coincidence * 0.01)" },
+    corrected_reading: { id: "corrected_reading", expression: "observed_reading - zero_error_cm" },
+  },
+  outputs: {
+    msr: { id: "msr", label: "Main Scale Reading (MSR)", unit: "cm", expression: "main_scale_reading", precision: 1 },
+    vsd: { id: "vsd", label: "Vernier Division Coincidence (VSD)", unit: "div", expression: "vernier_coincidence", precision: 0 },
+    observed: { id: "observed", label: "Observed Reading (MSR + VSD × LC)", unit: "cm", expression: "observed_reading", precision: 2 },
+    corrected: { id: "corrected", label: "Corrected Reading (Observed - Zero Error)", unit: "cm", expression: "corrected_reading", precision: 2 },
+  },
+  errorModel: {
+    leastCount: 0.01,
+    zeroError: 0.02,
+  },
+  visuals: [
+    {
+      type: "vernier_caliper",
+      id: "vernier_caliper_assembly",
+      xExpression: "0",
+      yExpression: "0",
+      properties: {
+        gapExpression: "specimen_dimension",
+        scaleFactor: 28,
+      },
+    },
+  ],
+};

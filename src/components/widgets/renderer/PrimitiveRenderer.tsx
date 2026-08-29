@@ -198,8 +198,10 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
     case "vernier_caliper": {
       const scaleFactor = (primitive.properties?.scaleFactor as number) || 25; // px per cm
       const jawGap = Math.max(0, getNum(primitive.properties?.gapExpression as string, 2.34) * scaleFactor);
-      const objectType = (primitive.properties?.objectType as string) || "sphere";
-      const objectLabel = (primitive.properties?.objectLabel as string) || "Object";
+      
+      const selectedObjNum = evalContext.object_type_select;
+      const objectType = selectedObjNum === 2 ? "cylinder" : selectedObjNum === 3 ? "block" : (primitive.properties?.objectType as string) || "sphere";
+      const objectLabel = selectedObjNum === 2 ? "Solid Cylinder" : selectedObjNum === 3 ? "Rectangular Block" : (primitive.properties?.objectLabel as string) || "Steel Sphere";
 
       const originX = 50;
       const originY = 40;
