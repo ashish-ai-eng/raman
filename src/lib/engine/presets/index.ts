@@ -1,18 +1,27 @@
 import { UniversalPhysicsSpec } from "@/types/upr";
-import { vernierCaliperPreset } from "./vernier";
-import { opticsBenchPreset } from "./optics";
-import { ohmsLawPreset } from "./ohmsLaw";
-import { simplePendulumPreset } from "./pendulum";
+import {
+  vernierCaliperPreset,
+  screwGaugePreset,
+  newtonsLawsPreset,
+  pendulumPreset as simplePendulumPreset,
+  rayOpticsPreset as opticsBenchPreset,
+  ohmsLawPreset,
+} from "@/presets";
 
 export const PRESET_WIDGETS: Record<string, UniversalPhysicsSpec> = {
   [vernierCaliperPreset.id]: vernierCaliperPreset,
+  [screwGaugePreset.id]: screwGaugePreset,
+  [newtonsLawsPreset.id]: newtonsLawsPreset,
+  [simplePendulumPreset.id]: simplePendulumPreset,
   [opticsBenchPreset.id]: opticsBenchPreset,
   [ohmsLawPreset.id]: ohmsLawPreset,
 };
 
 export {
   vernierCaliperPreset,
+  screwGaugePreset,
+  newtonsLawsPreset,
+  simplePendulumPreset,
   opticsBenchPreset,
   ohmsLawPreset,
-  simplePendulumPreset,
 };
