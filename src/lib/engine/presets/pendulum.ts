@@ -3,7 +3,9 @@ import { UniversalPhysicsSpec } from "@/types/upr";
 export const simplePendulumPreset: UniversalPhysicsSpec = {
   id: "preset-simple-pendulum",
   name: "Simple Pendulum Experiment",
-  description: "Investigate period of oscillation T versus string length L to derive gravity g. Bob mass m has no effect on period T.",
+  description: "Investigate period of oscillation T versus string length L to derive gravity g. Bob mass m increases visual bob size but has no effect on period T.",
+  hasAnimation: true,
+  hasZeroError: false,
   inputs: {
     string_length_L: {
       id: "string_length_L",
@@ -72,6 +74,11 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       id: "bob_y",
       expression: "15 + cos(angle_theta) * string_length_L * 80",
     },
+    // Bob visual radius scales with mass m: r = 10 + m * 12 px
+    bob_radius: {
+      id: "bob_radius",
+      expression: "10 + bob_mass_m * 12",
+    },
   },
   outputs: {
     stopwatch_time: {
@@ -105,7 +112,7 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       id: "pendulum_bob",
       xExpression: "bob_x",
       yExpression: "bob_y",
-      properties: { radius: 16 },
+      properties: { radius: "bob_radius" },
     },
   ],
 };

@@ -3,12 +3,15 @@ import { describe, it, expect } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
 import { DynamicWidgetRunner } from "@/components/widgets/DynamicWidgetRunner";
 import { UniversalPhysicsSpec } from "@/types/upr";
+import { simplePendulumPreset, vernierCaliperPreset } from "@/lib/engine/presets";
 
 describe("DynamicWidgetRunner Component (CL 2.2)", () => {
   const sampleSpec: UniversalPhysicsSpec = {
     id: "test-widget",
     name: "Test Pendulum Widget",
     description: "Simple test spec",
+    hasAnimation: true,
+    hasZeroError: false,
     inputs: {
       length_L: {
         id: "length_L",
@@ -66,5 +69,16 @@ describe("DynamicWidgetRunner Component (CL 2.2)", () => {
 
     // New T = 2*PI*sqrt(0.25/9.81) = 1.003s -> 1 s
     expect(container.textContent).toContain("1 s");
+  });
+
+  it("omits zero error panel on pendulum spec (hasZeroError: false)", () => {
+    const { queryByTestId } = render(<DynamicWidgetRunner spec={simplePendulumPreset} />);
+    expect(queryByTestId("zero-error-panel")).toBeNull();
+  });
+
+  it("omits play motion animation controls on Vernier Caliper spec (hasAnimation: false)", () => {
+    const { queryByTestId, getByTestId } = render(<DynamicWidgetRunner spec={vernierCaliperPreset} />);
+    expect(queryByTestId("animation-controls")).toBeNull();
+    expect(getByTestId("zero-error-panel")).not.toBeNull();
   });
 });

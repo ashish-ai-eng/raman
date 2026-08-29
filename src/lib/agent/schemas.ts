@@ -64,6 +64,8 @@ export const UniversalPhysicsSpecSchema = z.object({
   outputs: z.record(UPROutputSchema),
   errorModel: UPRErrorModelSchema.optional(),
   visuals: z.array(VisualPrimitiveSchema).optional(),
+  hasAnimation: z.boolean().optional(),
+  hasZeroError: z.boolean().optional(),
 });
 
 export const CalculatedObservableSchema = z.object({

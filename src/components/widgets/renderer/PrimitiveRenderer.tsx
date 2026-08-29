@@ -96,7 +96,8 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
     }
 
     case "bob": {
-      const radius = (primitive.properties?.radius as number) || 16;
+      const rawRadiusProp = primitive.properties?.radius;
+      const radius = typeof rawRadiusProp === "number" ? rawRadiusProp : getNum(rawRadiusProp as string, 16);
       const anchorX = (primitive.properties?.anchorX as number) || 150;
       const anchorY = (primitive.properties?.anchorY as number) || 15;
       return (

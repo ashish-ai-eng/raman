@@ -12,6 +12,9 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
   spec,
   onStateChange,
 }) => {
+  // Capability flags: determine whether animation transport or zero error panels apply
+  const isAnimationApplicable = spec.hasAnimation ?? Object.values(spec.equations).some((eq) => /\b(t|time)\b/.test(eq.expression));
+  const isZeroErrorApplicable = spec.hasZeroError ?? (spec.errorModel?.zeroError !== undefined);
   // Local state for user input values
   const [inputValues, setInputValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
@@ -99,31 +102,33 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
           <p className="text-sm text-slate-500 mt-0.5">{spec.description}</p>
         </div>
 
-        {/* Animation Play/Pause/Reset Controls */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className={`text-xs font-bold px-3 py-1.5 rounded-md transition-colors ${
-              isPlaying
-                ? "bg-amber-500 hover:bg-amber-600 text-white"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
-            }`}
-          >
-            {isPlaying ? "❚❚ Pause" : "▶ Play Motion"}
-          </button>
-          <button
-            onClick={() => {
-              setIsPlaying(false);
-              setSimTime(0);
-            }}
-            className="text-xs font-semibold bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-md transition-colors"
-          >
-            ↺ Reset
-          </button>
-          <span className="text-xs font-mono font-bold text-slate-600 px-2">
-            t = {simTime.toFixed(2)}s
-          </span>
-        </div>
+        {/* Animation Play/Pause/Reset Controls (Only if animation applies) */}
+        {isAnimationApplicable && (
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200" data-testid="animation-controls">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-md transition-colors ${
+                isPlaying
+                  ? "bg-amber-500 hover:bg-amber-600 text-white"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white"
+              }`}
+            >
+              {isPlaying ? "❚❚ Pause" : "▶ Play Motion"}
+            </button>
+            <button
+              onClick={() => {
+                setIsPlaying(false);
+                setSimTime(0);
+              }}
+              className="text-xs font-semibold bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-md transition-colors"
+            >
+              ↺ Reset
+            </button>
+            <span className="text-xs font-mono font-bold text-slate-600 px-2">
+              t = {simTime.toFixed(2)}s
+            </span>
+          </div>
+        )}
       </div>
 
       {/* SVG Canvas Visual Stage */}
@@ -172,7 +177,7 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
       </div>
 
       {/* Interactive Controls & Calibration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
+      <div className={`grid grid-cols-1 ${isZeroErrorApplicable ? "md:grid-cols-2" : ""} gap-6 pt-2 border-t border-slate-100`}>
         {/* Sliders & Toggles */}
         <div className="space-y-4">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -188,46 +193,63 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
                     {currentVal} {input.unit}
                   </span>
                 </div>
-                <input
-                  id={key}
-                  type="range"
-                  min={input.min}
-                  max={input.max}
-                  step={input.step}
-                  value={currentVal}
-                  onChange={(e) => handleInputChange(key, parseFloat(e.target.value))}
-                  className="w-full accent-brand-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                />
+                {input.type === "select" && input.options ? (
+                  <select
+                    id={key}
+                    value={currentVal}
+                    onChange={(e) => handleInputChange(key, parseFloat(e.target.value))}
+                    className="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    {input.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    id={key}
+                    type="range"
+                    min={input.min}
+                    max={input.max}
+                    step={input.step}
+                    value={currentVal}
+                    onChange={(e) => handleInputChange(key, parseFloat(e.target.value))}
+                    className="w-full accent-brand-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                )}
               </div>
             );
           })}
         </div>
 
-        {/* Zero Error Calibration Offset */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Instrument Calibration
-          </h3>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between text-xs font-semibold text-amber-800">
-              <span>Zero Error Calibration Offset</span>
-              <span>{zeroErrorOffset > 0 ? `+${zeroErrorOffset}` : zeroErrorOffset}</span>
+        {/* Zero Error Calibration Offset (Only if applicable) */}
+        {isZeroErrorApplicable && (
+          <div className="space-y-4" data-testid="zero-error-panel">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Instrument Calibration
+            </h3>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+              <div className="flex justify-between text-xs font-semibold text-amber-800">
+                <span>Zero Error Calibration Offset</span>
+                <span>{zeroErrorOffset > 0 ? `+${zeroErrorOffset}` : zeroErrorOffset}</span>
+              </div>
+              <input
+                type="range"
+                min="-0.2"
+                max="0.2"
+                step="0.01"
+                value={zeroErrorOffset}
+                onChange={(e) => setZeroErrorOffset(parseFloat(e.target.value))}
+                className="w-full accent-amber-600 h-1.5 bg-amber-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <p className="text-[11px] text-amber-700 leading-tight">
+                Simulates zero calibration misalignment. Correct readings equal Observed
+                Reading minus Zero Error.
+              </p>
             </div>
-            <input
-              type="range"
-              min="-0.2"
-              max="0.2"
-              step="0.01"
-              value={zeroErrorOffset}
-              onChange={(e) => setZeroErrorOffset(parseFloat(e.target.value))}
-              className="w-full accent-amber-600 h-1.5 bg-amber-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <p className="text-[11px] text-amber-700 leading-tight">
-              Simulates zero calibration misalignment. Correct readings equal Observed
-              Reading minus Zero Error.
-            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

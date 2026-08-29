@@ -57,4 +57,6 @@ export interface UniversalPhysicsSpec {
   outputs: Record<string, UPROutput>;
   errorModel?: UPRErrorModel;
   visuals?: VisualPrimitive[];
+  hasAnimation?: boolean; // Whether widget has continuous motion (e.g. pendulum, waves)
+  hasZeroError?: boolean;  // Whether widget uses zero-error calibration (e.g. Vernier, micrometer)
 }
