@@ -61,10 +61,11 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       id: "t_squared",
       expression: "theoretical_period_T ^ 2",
     },
-    // At rest (t = 0), sin(0) = 0 so angle_theta = 0 and pendulum hangs straight down vertically
+    // Real-time simple harmonic oscillation in degrees: theta(t) = 15° * sin(360° * t / T)
+    // Oscillates smoothly between -15° and +15° at physical frequency f = 1/T
     angle_theta: {
       id: "angle_theta",
-      expression: "15 * sin(2 * PI * t / theoretical_period_T)",
+      expression: "15 * sin(360 * t / theoretical_period_T)",
     },
     bob_x: {
       id: "bob_x",
