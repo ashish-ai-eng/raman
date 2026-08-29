@@ -3,7 +3,7 @@ import { UniversalPhysicsSpec } from "@/types/upr";
 export const simplePendulumPreset: UniversalPhysicsSpec = {
   id: "preset-simple-pendulum",
   name: "Simple Pendulum Experiment",
-  description: "Investigate period of oscillation T versus string length L to derive gravity g.",
+  description: "Investigate period of oscillation T versus string length L to derive gravity g. Bob mass m has no effect on period T.",
   inputs: {
     string_length_L: {
       id: "string_length_L",
@@ -14,6 +14,16 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       step: 0.05,
       defaultValue: 0.8,
       unit: "m",
+    },
+    bob_mass_m: {
+      id: "bob_mass_m",
+      label: "Bob Mass m (kg)",
+      type: "slider",
+      min: 0.1,
+      max: 2.0,
+      step: 0.1,
+      defaultValue: 0.5,
+      unit: "kg",
     },
     gravity_g: {
       id: "gravity_g",
@@ -49,6 +59,19 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       id: "t_squared",
       expression: "theoretical_period_T ^ 2",
     },
+    // Real-time simple harmonic angular displacement equation: theta(t) = 15 * cos(2*PI*t / T)
+    angle_theta: {
+      id: "angle_theta",
+      expression: "15 * cos(2 * PI * t / theoretical_period_T)",
+    },
+    bob_x: {
+      id: "bob_x",
+      expression: "150 + sin(angle_theta) * string_length_L * 80",
+    },
+    bob_y: {
+      id: "bob_y",
+      expression: "15 + cos(angle_theta) * string_length_L * 80",
+    },
   },
   outputs: {
     stopwatch_time: {
@@ -80,8 +103,8 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
     {
       type: "bob",
       id: "pendulum_bob",
-      xExpression: "150 + sin(15) * string_length_L * 80",
-      yExpression: "20 + cos(15) * string_length_L * 80",
+      xExpression: "bob_x",
+      yExpression: "bob_y",
       properties: { radius: 16 },
     },
   ],

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { UniversalPhysicsSpec } from "@/types/upr";
 import { evaluateUniversalSpec } from "@/lib/engine/dependencyGraph";
 import { PrimitiveRenderer } from "./renderer/PrimitiveRenderer";
@@ -26,7 +26,37 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
     spec.errorModel?.zeroError ?? 0
   );
 
-  // Evaluate engine state reactively
+  // Animation continuous time t (seconds)
+  const [simTime, setSimTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const animFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number | null>(null);
+
+  // Animation Loop
+  useEffect(() => {
+    if (!isPlaying) {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      lastTimeRef.current = null;
+      return;
+    }
+
+    const loop = (timestamp: number) => {
+      if (lastTimeRef.current !== null) {
+        const delta = (timestamp - lastTimeRef.current) / 1000;
+        setSimTime((prev) => prev + delta);
+      }
+      lastTimeRef.current = timestamp;
+      animFrameRef.current = requestAnimationFrame(loop);
+    };
+
+    animFrameRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isPlaying]);
+
+  // Evaluate engine state reactively with continuous time t injected
   const evalState = useMemo(() => {
     const activeSpec: UniversalPhysicsSpec = {
       ...spec,
@@ -35,10 +65,18 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
         zeroError: zeroErrorOffset,
       },
     };
-    const state = evaluateUniversalSpec(activeSpec, inputValues);
+
+    // Inject continuous animation time t into input overrides for harmonic motion expressions
+    const overrides = {
+      ...inputValues,
+      t: simTime,
+      time: simTime,
+    };
+
+    const state = evaluateUniversalSpec(activeSpec, overrides);
     if (onStateChange) onStateChange(state);
     return state;
-  }, [spec, inputValues, zeroErrorOffset, onStateChange]);
+  }, [spec, inputValues, zeroErrorOffset, simTime, onStateChange]);
 
   const handleInputChange = (key: string, val: number) => {
     setInputValues((prev) => ({ ...prev, [key]: val }));
@@ -48,14 +86,44 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
     ...evalState.inputs,
     ...evalState.equations,
     ...evalState.outputs,
+    t: simTime,
+    time: simTime,
   };
 
   return (
     <div className="w-full max-w-4xl bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">{spec.name}</h2>
-        <p className="text-sm text-slate-500 mt-1">{spec.description}</p>
+      {/* Header & Animation Transport Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">{spec.name}</h2>
+          <p className="text-sm text-slate-500 mt-0.5">{spec.description}</p>
+        </div>
+
+        {/* Animation Play/Pause/Reset Controls */}
+        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className={`text-xs font-bold px-3 py-1.5 rounded-md transition-colors ${
+              isPlaying
+                ? "bg-amber-500 hover:bg-amber-600 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+          >
+            {isPlaying ? "❚❚ Pause" : "▶ Play Motion"}
+          </button>
+          <button
+            onClick={() => {
+              setIsPlaying(false);
+              setSimTime(0);
+            }}
+            className="text-xs font-semibold bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-md transition-colors"
+          >
+            ↺ Reset
+          </button>
+          <span className="text-xs font-mono font-bold text-slate-600 px-2">
+            t = {simTime.toFixed(2)}s
+          </span>
+        </div>
       </div>
 
       {/* SVG Canvas Visual Stage */}
