@@ -37,6 +37,28 @@ describe("Seed Universal Widget Presets (CL 2.3)", () => {
       expect(res.outputs.time_period).toBeCloseTo(expectedT, 2);
       expect(res.outputs.period_squared).toBeCloseTo(expectedT ** 2, 2);
     });
+
+    it("oscillates angle_theta between -15° and +15° over continuous time t", () => {
+      const L = 1.0;
+      const g = 9.81;
+      const T = 2 * Math.PI * Math.sqrt(L / g); // ~2.006s
+
+      // At t = 0: angle = 0°
+      const state0 = evaluateUniversalSpec(simplePendulumPreset, { string_length_L: L, gravity_g: g, t: 0 });
+      expect(state0.equations.angle_theta).toBeCloseTo(0, 4);
+
+      // At t = T / 4: angle = +15°
+      const stateQuarter = evaluateUniversalSpec(simplePendulumPreset, { string_length_L: L, gravity_g: g, t: T / 4 });
+      expect(stateQuarter.equations.angle_theta).toBeCloseTo(15, 2);
+
+      // At t = 3 * T / 4: angle = -15°
+      const stateThreeQuarter = evaluateUniversalSpec(simplePendulumPreset, { string_length_L: L, gravity_g: g, t: (3 * T) / 4 });
+      expect(stateThreeQuarter.equations.angle_theta).toBeCloseTo(-15, 2);
+
+      // At t = T: angle = 0° (full cycle complete)
+      const stateFull = evaluateUniversalSpec(simplePendulumPreset, { string_length_L: L, gravity_g: g, t: T });
+      expect(stateFull.equations.angle_theta).toBeCloseTo(0, 2);
+    });
   });
 
   describe("Optics Bench Convex Lens Preset", () => {
