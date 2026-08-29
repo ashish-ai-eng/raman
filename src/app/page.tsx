@@ -6,7 +6,7 @@ import { DynamicWidgetRunner } from "@/components/widgets/DynamicWidgetRunner";
 
 export default function Home() {
   const [selectedWidgetId, setSelectedWidgetId] = useState<string>(
-    "preset-simple-pendulum"
+    "preset-vernier-caliper"
   );
 
   const activeWidget = PRESET_WIDGETS[selectedWidgetId];
