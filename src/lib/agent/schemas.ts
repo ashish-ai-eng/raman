@@ -35,6 +35,40 @@ export const UPRErrorModelSchema = z.object({
   noisePercentage: z.number().optional(),
 });
 
+export const SVGAttrsSchema = z.object({
+  x: z.string().optional(),
+  y: z.string().optional(),
+  cx: z.string().optional(),
+  cy: z.string().optional(),
+  r: z.string().optional(),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  x1: z.string().optional(),
+  y1: z.string().optional(),
+  x2: z.string().optional(),
+  y2: z.string().optional(),
+  d: z.string().optional(),
+  points: z.string().optional(),
+  fill: z.string().optional(),
+  stroke: z.string().optional(),
+  strokeWidth: z.string().optional(),
+  transform: z.string().optional(),
+  fontSize: z.string().optional(),
+  textAnchor: z.string().optional(),
+  fontWeight: z.string().optional(),
+  content: z.string().optional(),
+  rx: z.string().optional(),
+});
+
+export const DynamicSVGNodeSchema: z.ZodType<any> = z.lazy(() =>
+  z.object({
+    id: z.string(),
+    tag: z.enum(["rect", "circle", "line", "path", "text", "g", "polygon"]),
+    attrs: SVGAttrsSchema,
+    children: z.array(DynamicSVGNodeSchema).optional(),
+  })
+);
+
 export const VisualPrimitiveSchema = z.object({
   type: z.enum([
     "ruler",
@@ -64,6 +98,7 @@ export const UniversalPhysicsSpecSchema = z.object({
   outputs: z.record(UPROutputSchema),
   errorModel: UPRErrorModelSchema.optional(),
   visuals: z.array(VisualPrimitiveSchema).optional(),
+  svgNodes: z.array(DynamicSVGNodeSchema).optional(),
   hasAnimation: z.boolean().optional(),
   hasZeroError: z.boolean().optional(),
 });

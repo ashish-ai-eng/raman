@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { UniversalPhysicsSpec } from "@/types/upr";
 import { evaluateUniversalSpec } from "@/lib/engine/dependencyGraph";
 import { PrimitiveRenderer } from "./renderer/PrimitiveRenderer";
+import { UniversalSVGRenderer } from "./renderer/UniversalSVGRenderer";
 
 export interface DynamicWidgetRunnerProps {
   spec: UniversalPhysicsSpec;
@@ -140,13 +141,18 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
               <stop offset="100%" stopColor="#0369a1" />
             </radialGradient>
           </defs>
-          {spec.visuals?.map((primitive) => (
-            <PrimitiveRenderer
-              key={primitive.id}
-              primitive={primitive}
-              evalContext={evalContext}
-            />
-          ))}
+          {/* Generative SVG Graphic Tree */}
+          {spec.svgNodes && spec.svgNodes.length > 0 ? (
+            <UniversalSVGRenderer nodes={spec.svgNodes} evalContext={evalContext} />
+          ) : (
+            spec.visuals?.map((primitive) => (
+              <PrimitiveRenderer
+                key={primitive.id}
+                primitive={primitive}
+                evalContext={evalContext}
+              />
+            ))
+          )}
         </svg>
       </div>
 
