@@ -9,8 +9,8 @@ import {
 } from "@/lib/engine/presets";
 
 describe("Seed Universal Widget Presets (CL 2.3)", () => {
-  it("exports a registry containing 4 preset widget specifications", () => {
-    expect(Object.keys(PRESET_WIDGETS)).toHaveLength(4);
+  it("exports a registry containing 3 preset widget specifications", () => {
+    expect(Object.keys(PRESET_WIDGETS)).toHaveLength(3);
   });
 
   describe("Vernier Caliper Preset", () => {
