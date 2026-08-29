@@ -38,6 +38,38 @@ export interface UPRErrorModel {
   noisePercentage?: number; // Optional random variance for realistic experimental simulation
 }
 
+export type SVGTagType = "rect" | "circle" | "line" | "path" | "text" | "g" | "polygon";
+
+export interface DynamicSVGNode {
+  id: string;
+  tag: SVGTagType;
+  attrs: {
+    x?: string;
+    y?: string;
+    cx?: string;
+    cy?: string;
+    r?: string;
+    width?: string;
+    height?: string;
+    x1?: string;
+    y1?: string;
+    x2?: string;
+    y2?: string;
+    d?: string;
+    points?: string;
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: string;
+    transform?: string;
+    fontSize?: string;
+    textAnchor?: string;
+    fontWeight?: string;
+    content?: string;
+    rx?: string;
+  };
+  children?: DynamicSVGNode[];
+}
+
 export interface VisualPrimitive {
   type: "ruler" | "scale" | "lens" | "bob" | "circuit_wire" | "pointer" | "digital_display" | "vernier_caliper" | "custom_svg";
   id: string;
@@ -57,6 +89,7 @@ export interface UniversalPhysicsSpec {
   outputs: Record<string, UPROutput>;
   errorModel?: UPRErrorModel;
   visuals?: VisualPrimitive[];
-  hasAnimation?: boolean; // Whether widget has continuous motion (e.g. pendulum, waves)
-  hasZeroError?: boolean;  // Whether widget uses zero-error calibration (e.g. Vernier, micrometer)
+  svgNodes?: DynamicSVGNode[]; // Generative SVG Graphic Tree created dynamically by AI
+  hasAnimation?: boolean;     // Whether widget has continuous motion (e.g. pendulum, waves)
+  hasZeroError?: boolean;      // Whether widget uses zero-error calibration (e.g. Vernier, micrometer)
 }
