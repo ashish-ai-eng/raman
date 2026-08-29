@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { UniversalPhysicsSpecSchema, LabSpecSchema } from "@/lib/agent/schemas";
 import { simplePendulumPreset } from "@/lib/engine/presets";
+import { evaluateUniversalSpec } from "@/lib/engine/dependencyGraph";
 
 describe("CL 3.1 & 3.2: AI Studio Schemas & Chat API", () => {
   it("validates preset physics specs against UniversalPhysicsSpecSchema Zod schema", () => {
@@ -17,6 +18,20 @@ describe("CL 3.1 & 3.2: AI Studio Schemas & Chat API", () => {
 
     const result = UniversalPhysicsSpecSchema.safeParse(invalidSpec);
     expect(result.success).toBe(false);
+  });
+
+  it("verifies pendulum initial state (t = 0) hangs straight down vertically at theta = 0", () => {
+    const evalState = evaluateUniversalSpec(simplePendulumPreset, {
+      string_length_L: 1.0,
+      t: 0,
+    });
+
+    // At t = 0, sin(0) = 0 => angle_theta = 0
+    expect(evalState.equations.angle_theta).toBe(0);
+    // bob_x = 150 + sin(0) * L * 80 = 150 (perfectly aligned with fixed support anchorX = 150)
+    expect(evalState.equations.bob_x).toBe(150);
+    // bob_y = 15 + cos(0) * 1.0 * 80 = 95
+    expect(evalState.equations.bob_y).toBe(95);
   });
 
   it("validates complete lab spec objects against LabSpecSchema Zod schema", () => {

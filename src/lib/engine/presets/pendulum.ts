@@ -59,10 +59,10 @@ export const simplePendulumPreset: UniversalPhysicsSpec = {
       id: "t_squared",
       expression: "theoretical_period_T ^ 2",
     },
-    // Real-time simple harmonic angular displacement equation: theta(t) = 15 * cos(2*PI*t / T)
+    // At rest (t = 0), sin(0) = 0 so angle_theta = 0 and pendulum hangs straight down vertically
     angle_theta: {
       id: "angle_theta",
-      expression: "15 * cos(2 * PI * t / theoretical_period_T)",
+      expression: "15 * sin(2 * PI * t / theoretical_period_T)",
     },
     bob_x: {
       id: "bob_x",

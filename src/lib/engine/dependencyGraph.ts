@@ -59,6 +59,13 @@ export function evaluateUniversalSpec(
     context[key] = val;
   }
 
+  // Include any extra runtime overrides (e.g. continuous animation time t) into context
+  for (const [key, val] of Object.entries(inputOverrides)) {
+    if (!(key in context)) {
+      context[key] = val;
+    }
+  }
+
   // 2. Evaluate intermediate equations (Iterative graph resolution)
   const equationsState: Record<string, number> = {};
   const pendingEquations = Object.entries(spec.equations);
