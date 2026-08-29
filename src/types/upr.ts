@@ -39,7 +39,7 @@ export interface UPRErrorModel {
 }
 
 export interface VisualPrimitive {
-  type: "ruler" | "scale" | "lens" | "bob" | "circuit_wire" | "pointer" | "digital_display" | "custom_svg";
+  type: "ruler" | "scale" | "lens" | "bob" | "circuit_wire" | "pointer" | "digital_display" | "vernier_caliper" | "custom_svg";
   id: string;
   xExpression: string;
   yExpression: string;
