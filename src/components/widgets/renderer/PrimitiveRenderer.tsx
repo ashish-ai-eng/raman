@@ -143,21 +143,202 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
     }
 
     case "lens": {
+      const rawLensType = evalContext.lens_type ?? evalContext.lensType ?? primitive.properties?.lensTypeExpression ?? 1;
+      const lensTypeNum = typeof rawLensType === "number" ? rawLensType : getNum(String(rawLensType), 1);
+      const isConvex = lensTypeNum === 1;
+
+      const fMag = Math.abs(evalContext.focal_length_cm ?? evalContext.focalLength ?? 15);
+      const uMag = Math.abs(evalContext.object_distance_u_cm ?? evalContext.objectDistanceU ?? 25);
+      const ho = Math.abs(evalContext.object_height_ho_cm ?? evalContext.objectHeight ?? 8);
+
+      const signedF = isConvex ? fMag : -fMag;
+      const signedU = -uMag;
+
+      const denom = signedU + signedF;
+      const atFocus = Math.abs(denom) < 0.0001;
+      const signedV = atFocus ? 999999 : (signedU * signedF) / denom;
+      const mag = atFocus ? 9999 : signedV / signedU;
+      const hi = mag * ho;
+
+      const scale = 7.5; // px per cm
+      const originX = 250;
+      const originY = 130;
+
+      const objX = originX + signedU * scale; // negative u -> left
+      const objY = originY - ho * scale;
+
+      const imgX = atFocus ? 9999 : originX + signedV * scale;
+      const imgY = atFocus ? originY : originY - hi * scale;
+
+      const f1X = originX - fMag * scale;
+      const f2X = originX + fMag * scale;
+      const f1DoubleX = originX - 2 * fMag * scale;
+      const f2DoubleX = originX + 2 * fMag * scale;
+
       return (
-        <g transform={`translate(${x}, ${y})`}>
-          {/* Optical Axis */}
-          <line x1="-180" y1="0" x2="180" y2="0" stroke="#94a3b8" strokeDasharray="4 4" strokeWidth="1.5" />
-          {/* Convex Lens Body */}
-          <path
-            d="M 0 -50 Q 15 0 0 50 Q -15 0 0 -50 Z"
-            fill="#38bdf8"
-            fillOpacity="0.35"
-            stroke="#0284c7"
-            strokeWidth="2"
-          />
-          <text x="0" y="-60" fontSize="11" fill="#0284c7" fontWeight="bold" textAnchor="middle">
-            Convex Lens
-          </text>
+        <g transform={`translate(${x}, ${y})`} data-testid="ray-optics-bench">
+          {/* Bench Rail Baseline */}
+          <rect x="10" y="240" width="480" height="8" fill="#1e293b" rx="2" stroke="#334155" strokeWidth="1" />
+
+          {/* Rail Scale Ticks & Coordinate Labels */}
+          {Array.from({ length: 9 }).map((_, i) => {
+            const cm = -40 + i * 10;
+            const tx = originX + cm * scale;
+            if (tx < 15 || tx > 485) return null;
+            return (
+              <g key={i}>
+                <line x1={tx} y1="130" x2={tx} y2="138" stroke="#64748b" strokeWidth="1" />
+                <text x={tx} y="253" fontSize="8" fill="#64748b" fontFamily="monospace" textAnchor="middle">
+                  {cm}cm
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Focal Markers Pins (2F1, F1, O, F2, 2F2) */}
+          <g data-testid="focal-markers">
+            {/* O (Optical Center) */}
+            <circle cx={originX} cy={originY} r="4" fill="#38bdf8" />
+            <text x={originX} y={originY + 16} fontSize="10" fill="#38bdf8" fontWeight="bold" textAnchor="middle">
+              O (0)
+            </text>
+
+            {/* F1 (-f) */}
+            {f1X >= 20 && (
+              <g>
+                <circle cx={f1X} cy={originY} r="3.5" fill="#38bdf8" />
+                <text x={f1X} y={originY + 15} fontSize="9" fill="#38bdf8" fontWeight="bold" textAnchor="middle">
+                  F1
+                </text>
+              </g>
+            )}
+
+            {/* F2 (+f) */}
+            {f2X <= 480 && (
+              <g>
+                <circle cx={f2X} cy={originY} r="3.5" fill="#38bdf8" />
+                <text x={f2X} y={originY + 15} fontSize="9" fill="#38bdf8" fontWeight="bold" textAnchor="middle">
+                  F2
+                </text>
+              </g>
+            )}
+
+            {/* 2F1 (-2f) */}
+            {f1DoubleX >= 20 && (
+              <g>
+                <circle cx={f1DoubleX} cy={originY} r="3" fill="#64748b" />
+                <text x={f1DoubleX} y={originY + 15} fontSize="8" fill="#94a3b8" textAnchor="middle">
+                  2F1
+                </text>
+              </g>
+            )}
+
+            {/* 2F2 (+2f) */}
+            {f2DoubleX <= 480 && (
+              <g>
+                <circle cx={f2DoubleX} cy={originY} r="3" fill="#64748b" />
+                <text x={f2DoubleX} y={originY + 15} fontSize="8" fill="#94a3b8" textAnchor="middle">
+                  2F2
+                </text>
+              </g>
+            )}
+          </g>
+
+          {/* Lens Visual Representation */}
+          {isConvex ? (
+            /* Convex Double Curved Translucent Geometry */
+            <path
+              d={`M ${originX} 35 Q ${originX + 16} 130 ${originX} 225 Q ${originX - 16} 130 ${originX} 35 Z`}
+              fill="rgba(56, 189, 248, 0.25)"
+              stroke="#38bdf8"
+              strokeWidth="2"
+            />
+          ) : (
+            /* Concave Hourglass Inner-Curved Geometry */
+            <path
+              d={`M ${originX - 12} 35 L ${originX + 12} 35 Q ${originX + 2} 130 ${originX + 12} 225 L ${originX - 12} 225 Q ${originX - 2} 130 ${originX - 12} 35 Z`}
+              fill="rgba(56, 189, 248, 0.25)"
+              stroke="#38bdf8"
+              strokeWidth="2"
+            />
+          )}
+
+          {/* Luminous Object Arrow (Green) */}
+          <g data-testid="luminous-object">
+            <line x1={objX} y1={originY} x2={objX} y2={objY} stroke="#10b981" strokeWidth="3" />
+            <polygon
+              points={`${objX},${objY - 6} ${objX - 5},${objY + 2} ${objX + 5},${objY + 2}`}
+              fill="#10b981"
+            />
+            <text x={objX} y={objY - 10} fontSize="9" fill="#10b981" fontWeight="bold" textAnchor="middle">
+              Object (ho={ho}cm)
+            </text>
+          </g>
+
+          {/* Formed Image Arrow (Solid Purple if Real, Dashed Cyan if Virtual) */}
+          {!atFocus && imgX >= -100 && imgX <= 800 && (
+            <g data-testid="formed-image">
+              <line
+                x1={imgX}
+                y1={originY}
+                x2={imgX}
+                y2={imgY}
+                stroke={signedV > 0 ? "#c084fc" : "#06b6d4"}
+                strokeWidth="3"
+                strokeDasharray={signedV > 0 ? undefined : "4,4"}
+              />
+              <polygon
+                points={
+                  signedV > 0
+                    ? `${imgX},${imgY + 6} ${imgX - 5},${imgY - 2} ${imgX + 5},${imgY - 2}`
+                    : `${imgX},${imgY - 6} ${imgX - 5},${imgY + 2} ${imgX + 5},${imgY + 2}`
+                }
+                fill={signedV > 0 ? "#c084fc" : "#06b6d4"}
+              />
+              <text
+                x={imgX}
+                y={signedV > 0 ? imgY + 16 : imgY - 10}
+                fontSize="9"
+                fill={signedV > 0 ? "#c084fc" : "#06b6d4"}
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                {signedV > 0 ? `Real Image (v=${signedV.toFixed(1)}cm)` : `Virtual Image (v=${signedV.toFixed(1)}cm)`}
+              </text>
+            </g>
+          )}
+
+          {/* 3 Geometric Principal Rays */}
+          {!atFocus && (
+            <g data-testid="principal-rays">
+              {/* Ray 1 (Gold #eab308): Parallel to axis -> Refocused through F2 (convex) or diverging from F1 (concave) */}
+              <line x1={objX} y1={objY} x2={originX} y2={objY} stroke="#eab308" strokeWidth="1.8" />
+              {isConvex ? (
+                <line x1={originX} y1={objY} x2={originX + 250} y2={objY + (originY - objY) * (250 / fMag)} stroke="#eab308" strokeWidth="1.8" />
+              ) : (
+                <g>
+                  <line x1={originX} y1={objY} x2={originX + 250} y2={objY - (originY - objY) * (250 / fMag)} stroke="#eab308" strokeWidth="1.8" />
+                  <line x1={originX} y1={objY} x2={f1X} y2={originY} stroke="#eab308" strokeWidth="1" strokeDasharray="3,3" />
+                </g>
+              )}
+
+              {/* Ray 2 (Rose #f43f5e): Straight through Optical Center O */}
+              <line x1={objX} y1={objY} x2={originX + 220} y2={originY + (originY - objY) * (220 / (originX - objX))} stroke="#f43f5e" strokeWidth="1.8" />
+
+              {/* Ray 3 (Cyan #06b6d4): Through F1 to lens -> emerges parallel */}
+              {isConvex && (
+                <g>
+                  <line x1={objX} y1={objY} x2={originX} y2={originY + (objY - originY) * (fMag / (uMag - fMag))} stroke="#06b6d4" strokeWidth="1.8" />
+                  <line x1={originX} y1={originY + (objY - originY) * (fMag / (uMag - fMag))} x2={originX + 220} y2={originY + (objY - originY) * (fMag / (uMag - fMag))} stroke="#06b6d4" strokeWidth="1.8" />
+                </g>
+              )}
+
+              {/* Virtual Backward Extensions (Dashed Cyan) when image is virtual (v < 0) */}
+              {signedV < 0 && (
+                <line x1={imgX} y1={imgY} x2={originX} y2={objY} stroke="#06b6d4" strokeWidth="1.2" strokeDasharray="3,3" />
+              )}
+            </g>
+          )}
         </g>
       );
     }
@@ -199,9 +380,23 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
       const scaleFactor = (primitive.properties?.scaleFactor as number) || 25; // px per cm
       const jawGap = Math.max(0, getNum(primitive.properties?.gapExpression as string, 2.34) * scaleFactor);
       
-      const selectedObjNum = evalContext.object_type_select;
-      const objectType = selectedObjNum === 2 ? "cylinder" : selectedObjNum === 3 ? "block" : (primitive.properties?.objectType as string) || "sphere";
-      const objectLabel = selectedObjNum === 2 ? "Solid Cylinder" : selectedObjNum === 3 ? "Rectangular Block" : (primitive.properties?.objectLabel as string) || "Steel Sphere";
+      const selectedObjNum = evalContext.specimen_selection ?? evalContext.object_type_select ?? 1;
+      let objectType: "sphere" | "cylinder" | "block" | "coin" | "pipe" = "sphere";
+      let objectLabel = "Steel Sphere";
+
+      if (selectedObjNum === 2) {
+        objectType = "cylinder";
+        objectLabel = "Brass Cylinder";
+      } else if (selectedObjNum === 3) {
+        objectType = "block";
+        objectLabel = "Aluminum Block";
+      } else if (selectedObjNum === 4) {
+        objectType = "coin";
+        objectLabel = "Bronze Coin";
+      } else if (selectedObjNum === 5) {
+        objectType = "pipe";
+        objectLabel = "Copper Pipe";
+      }
 
       const originX = 50;
       const originY = 40;
@@ -222,25 +417,35 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
             rx="2"
           />
 
-          {/* Main Scale Graduations (0 to 10 cm) */}
-          {Array.from({ length: 11 }).map((_, cm) => {
-            const cx = originX + cm * scaleFactor;
+          {/* Main Scale Graduations (0 to 10 cm with 1 mm ticks and cm labels) */}
+          {Array.from({ length: 101 }).map((_, mm) => {
+            const cx = originX + (mm / 10) * scaleFactor;
+            const isCm = mm % 10 === 0;
+            const isHalfCm = mm % 5 === 0 && !isCm;
+            const tickHeight = isCm ? 12 : isHalfCm ? 8 : 5;
+            const strokeWidth = isCm ? "1.2" : "0.8";
+
             return (
-              <g key={cm}>
-                <line x1={cx} y1={originY} x2={cx} y2={originY + 12} stroke="#334155" strokeWidth="1.2" />
-                <text x={cx} y={originY + 20} fontSize="8" fill="#334155" textAnchor="middle" fontWeight="bold">
-                  {cm}
-                </text>
-                {/* 0.5 cm sub-ticks */}
-                {cm < 10 && (
-                  <line
-                    x1={cx + scaleFactor * 0.5}
-                    y1={originY}
-                    x2={cx + scaleFactor * 0.5}
-                    y2={originY + 7}
-                    stroke="#64748b"
-                    strokeWidth="1"
-                  />
+              <g key={mm}>
+                <line
+                  x1={cx}
+                  y1={originY}
+                  x2={cx}
+                  y2={originY + tickHeight}
+                  stroke="#334155"
+                  strokeWidth={strokeWidth}
+                />
+                {isCm && (
+                  <text
+                    x={cx}
+                    y={originY + 20}
+                    fontSize="8"
+                    fill="#334155"
+                    textAnchor="middle"
+                    fontWeight="bold"
+                  >
+                    {mm / 10} cm
+                  </text>
                 )}
               </g>
             );
@@ -291,7 +496,7 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
                   strokeWidth="2"
                   rx="6"
                 />
-              ) : (
+              ) : objectType === "block" ? (
                 <rect
                   x={originX}
                   y={originY + 28}
@@ -303,6 +508,43 @@ export const PrimitiveRenderer: React.FC<PrimitiveRendererProps> = ({
                   strokeWidth="2"
                   rx="2"
                 />
+              ) : objectType === "coin" ? (
+                <ellipse
+                  cx={originX + jawGap / 2}
+                  cy={originY + 58}
+                  rx={jawGap / 2}
+                  ry={Math.min(30, jawGap / 2)}
+                  fill="#eab308"
+                  fillOpacity="0.9"
+                  stroke="#ca8a04"
+                  strokeWidth="2"
+                />
+              ) : (
+                /* pipe / hollow cylinder */
+                <g>
+                  <rect
+                    x={originX}
+                    y={originY + 28}
+                    width={jawGap}
+                    height="60"
+                    fill="#3b82f6"
+                    fillOpacity="0.75"
+                    stroke="#2563eb"
+                    strokeWidth="2"
+                    rx="4"
+                  />
+                  {jawGap > 10 && (
+                    <rect
+                      x={originX + 5}
+                      y={originY + 34}
+                      width={jawGap - 10}
+                      height="48"
+                      fill="#0f172a"
+                      fillOpacity="0.9"
+                      rx="2"
+                    />
+                  )}
+                </g>
               )}
               <text
                 x={originX + jawGap / 2}

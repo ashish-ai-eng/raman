@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, fireEvent } from "@testing-library/react";
 import { DynamicWidgetRunner } from "@/components/widgets/DynamicWidgetRunner";
 import { UniversalPhysicsSpec } from "@/types/upr";
@@ -80,5 +80,46 @@ describe("DynamicWidgetRunner Component (CL 2.2)", () => {
     const { queryByTestId, getByTestId } = render(<DynamicWidgetRunner spec={vernierCaliperPreset} />);
     expect(queryByTestId("animation-controls")).toBeNull();
     expect(getByTestId("zero-error-panel")).not.toBeNull();
+  });
+
+  it("updates specimen dimension automatically when specimen selection dropdown changes", () => {
+    const { getByLabelText, container } = render(<DynamicWidgetRunner spec={vernierCaliperPreset} />);
+    const select = getByLabelText("Specimen Selection") as HTMLSelectElement;
+    expect(select).not.toBeNull();
+
+    // Select Brass Cylinder (value 2, dimension 4.5 cm)
+    fireEvent.change(select, { target: { value: "2" } });
+    expect(container.textContent).toContain("Brass Cylinder");
+    expect(container.textContent).toContain("4.5 cm");
+
+    // Select Aluminum Block (value 3, dimension 1.8 cm)
+    fireEvent.change(select, { target: { value: "3" } });
+    expect(container.textContent).toContain("Aluminum Block");
+
+    // Select Bronze Coin (value 4, dimension 1.92 cm)
+    fireEvent.change(select, { target: { value: "4" } });
+    expect(container.textContent).toContain("Bronze Coin");
+
+    // Select Copper Pipe (value 5, dimension 3.1 cm)
+    fireEvent.change(select, { target: { value: "5" } });
+    expect(container.textContent).toContain("Copper Pipe");
+  });
+
+  it("handles inline onStateChange setState without triggering infinite render loop", () => {
+    const TestComponent = () => {
+      const [activeState, setActiveState] = React.useState<any>(null);
+      return (
+        <div>
+          <span data-testid="state-val">{activeState?.inputs?.length_L ?? "none"}</span>
+          <DynamicWidgetRunner
+            spec={sampleSpec}
+            onStateChange={(state) => setActiveState(state)}
+          />
+        </div>
+      );
+    };
+
+    const { getByTestId } = render(<TestComponent />);
+    expect(getByTestId("state-val").textContent).toBe("1");
   });
 });

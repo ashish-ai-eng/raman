@@ -3,14 +3,13 @@ import { evaluateUniversalSpec } from "@/lib/engine/dependencyGraph";
 import {
   vernierCaliperPreset,
   simplePendulumPreset,
-  opticsBenchPreset,
   ohmsLawPreset,
   PRESET_WIDGETS,
 } from "@/lib/engine/presets";
 
 describe("Seed Universal Widget Presets (CL 2.3)", () => {
-  it("exports a registry containing all 6 core preset widget specifications", () => {
-    expect(Object.keys(PRESET_WIDGETS)).toHaveLength(6);
+  it("exports a registry containing core preset widget specifications", () => {
+    expect(Object.keys(PRESET_WIDGETS)).toHaveLength(3);
   });
 
   describe("Vernier Caliper Preset", () => {
@@ -57,20 +56,6 @@ describe("Seed Universal Widget Presets (CL 2.3)", () => {
       // At t = T: angle = 0° (full cycle complete)
       const stateFull = evaluateUniversalSpec(simplePendulumPreset, { string_length_L: L, gravity_g: g, t: T });
       expect(stateFull.equations.angle_theta).toBeCloseTo(0, 2);
-    });
-  });
-
-  describe("Optics Bench Convex Lens Preset", () => {
-    it("evaluates lens formula v = (f * u) / (u - f) and reciprocals correctly", () => {
-      const res = evaluateUniversalSpec(opticsBenchPreset, {
-        object_distance_u: 30,
-        focal_length_f: 15,
-      });
-
-      expect(res.outputs.image_v).toBe(30);
-      expect(res.outputs.inv_u).toBeCloseTo(1 / 30, 4);
-      expect(res.outputs.inv_v).toBeCloseTo(1 / 30, 4);
-      expect(res.outputs.magnification).toBe(-1);
     });
   });
 

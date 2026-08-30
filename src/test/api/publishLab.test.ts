@@ -1,47 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { LabSpec } from "@/types/labSpec";
-import { simplePendulumPreset } from "@/lib/engine/presets";
+import { POST } from "@/app/api/labs/publish/route";
 
 describe("CL 4.3: Lab Approval & Publish State Transition API", () => {
-  it("transitions lab status from draft to published", () => {
-    const draftLab: LabSpec = {
-      id: "draft-lab-1",
-      title: "Draft Pendulum Lab",
-      topic: "Mechanics",
-      conceptSummary: "Draft concept",
-      funFacts: [],
-      widget: simplePendulumPreset,
-      observationSchema: {
-        parametersToRecord: ["L"],
-        calculatedValues: [],
-        graphConfig: {
-          xAxisKey: "L",
-          yAxisKey: "T2",
-          xAxisLabel: "L",
-          yAxisLabel: "T2",
-        },
-      },
-      steps: [],
-      challenges: [],
-      status: "draft",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  it("publishes the requested lab without falling back to pendulum lab", async () => {
+    const req = new Request("http://localhost/api/labs/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ labId: "vernier-201" }),
+    });
 
-    expect(draftLab.status).toBe("draft");
+    const res = await POST(req);
+    const data = await res.json();
 
-    // Simulate approval transition
-    const publishedLab: LabSpec = {
-      ...draftLab,
-      status: "published",
-      updatedAt: new Date().toISOString(),
-    };
-
-    expect(publishedLab.status).toBe("published");
+    expect(res.status).toBe(200);
+    expect(data.lab.id).toBe("vernier-201");
+    expect(data.lab.title).toContain("Vernier Caliper");
+    expect(data.lab.status).toBe("published");
+    expect(data.accessCode).toMatch(/^PHYS-\d{4}$/);
   });
 
-  it("generates an 8-character student access code with PHYS prefix", () => {
-    const randomCode = `PHYS-${Math.floor(1000 + Math.random() * 9000)}`;
-    expect(randomCode).toMatch(/^PHYS-\d{4}$/);
+  it("returns 404 for non-existent labId instead of defaulting to pendulum lab", async () => {
+    const req = new Request("http://localhost/api/labs/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ labId: "non-existent-lab" }),
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(data.error).toBe("Lab with ID 'non-existent-lab' not found.");
   });
 });

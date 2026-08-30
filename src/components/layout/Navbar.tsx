@@ -24,7 +24,7 @@ export const Navbar: React.FC = () => {
             ⚛
           </div>
           <span className="font-extrabold text-base tracking-tight text-white">
-            PhysLab<span className="text-brand-400 font-semibold">Studio</span>
+            PhiLab<span className="text-brand-400 font-semibold">Studio</span>
           </span>
         </Link>
 

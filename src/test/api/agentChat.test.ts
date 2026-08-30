@@ -2,11 +2,28 @@ import { describe, it, expect } from "vitest";
 import { UniversalPhysicsSpecSchema, LabSpecSchema } from "@/lib/agent/schemas";
 import { simplePendulumPreset } from "@/lib/engine/presets";
 import { evaluateUniversalSpec } from "@/lib/engine/dependencyGraph";
+import { POST } from "@/app/api/agent/chat/route";
 
 describe("CL 3.1 & 3.2: AI Studio Schemas & Chat API", () => {
   it("validates preset physics specs against UniversalPhysicsSpecSchema Zod schema", () => {
     const result = UniversalPhysicsSpecSchema.safeParse(simplePendulumPreset);
     expect(result.success).toBe(true);
+  });
+
+  it("returns message stating feature in progress for arbitrary open experiment creation attempts", async () => {
+    const req = new Request("http://localhost/api/agent/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Build a quantum entanglement simulation" }],
+      }),
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.message).toBe("We are working on a feature to enable any experiment creation.");
+    expect(data.spec).toBeUndefined();
   });
 
   it("fails Zod schema validation if required fields are missing", () => {
