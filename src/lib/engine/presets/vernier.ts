@@ -24,7 +24,7 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
     },
     object_size: {
       id: "object_size",
-      label: "Fine Adjust Object Dimension (cm)",
+      label: "Slide Scale / Dimension (cm)",
       type: "slider",
       min: 0.5,
       max: 7.5,
@@ -92,7 +92,7 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
       xExpression: "0",
       yExpression: "0",
       properties: {
-        gapExpression: "object_size",
+        gapExpression: "total_reading",
         objectType: "sphere",
         objectLabel: "Object Clamped Between Jaws",
         scaleFactor: 28,

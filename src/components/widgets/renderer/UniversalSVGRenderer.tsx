@@ -30,6 +30,22 @@ export const UniversalSVGRenderer: React.FC<UniversalSVGRendererProps> = ({
     }
   };
 
+  const evalStringAttr = (expr?: string): string | undefined => {
+    if (!expr) return undefined;
+    const trimmed = expr.trim();
+    if (!trimmed) return undefined;
+
+    return trimmed.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g, (match) => {
+      if (["rotate", "translate", "scale", "skewX", "skewY", "matrix", "M", "L", "H", "V", "C", "S", "Q", "T", "A", "Z"].includes(match)) {
+        return match;
+      }
+      if (match in evalContext && typeof evalContext[match] === "number" && !isNaN(evalContext[match])) {
+        return String(evalContext[match]);
+      }
+      return match;
+    });
+  };
+
   const renderNode = (node: DynamicSVGNode): React.ReactNode => {
     const { id, tag, attrs, children } = node;
 
@@ -47,7 +63,7 @@ export const UniversalSVGRenderer: React.FC<UniversalSVGRendererProps> = ({
             fill={attrs.fill || "#0284c7"}
             stroke={attrs.stroke || "none"}
             strokeWidth={evalAttr(attrs.strokeWidth, 0)}
-            transform={attrs.transform}
+            transform={evalStringAttr(attrs.transform)}
           />
         );
 
@@ -86,11 +102,11 @@ export const UniversalSVGRenderer: React.FC<UniversalSVGRendererProps> = ({
           <polygon
             key={id}
             id={id}
-            points={attrs.points || "0,0 10,10 0,10"}
+            points={evalStringAttr(attrs.points) || "0,0 10,10 0,10"}
             fill={attrs.fill || "#0284c7"}
             stroke={attrs.stroke || "none"}
             strokeWidth={evalAttr(attrs.strokeWidth, 0)}
-            transform={attrs.transform}
+            transform={evalStringAttr(attrs.transform)}
           />
         );
 
@@ -99,11 +115,11 @@ export const UniversalSVGRenderer: React.FC<UniversalSVGRendererProps> = ({
           <path
             key={id}
             id={id}
-            d={attrs.d || "M 0 0 L 100 100"}
+            d={evalStringAttr(attrs.d) || "M 0 0 L 100 100"}
             fill={attrs.fill || "none"}
             stroke={attrs.stroke || "#0284c7"}
             strokeWidth={evalAttr(attrs.strokeWidth, 2)}
-            transform={attrs.transform}
+            transform={evalStringAttr(attrs.transform)}
           />
         );
 

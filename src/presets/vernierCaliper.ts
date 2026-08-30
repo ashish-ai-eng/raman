@@ -26,7 +26,7 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
     },
     specimen_dimension: {
       id: "specimen_dimension",
-      label: "Fine Dimension Adjust (cm)",
+      label: "Slide Scale / Dimension (cm)",
       type: "slider",
       min: 0.1,
       max: 8.0,
@@ -49,6 +49,11 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
     msd_cm: { id: "msd_cm", expression: "0.1" },
     vsd_cm: { id: "vsd_cm", expression: "0.09" },
     least_count: { id: "least_count", expression: "0.01" },
+    object_type_select: { id: "object_type_select", expression: "specimen_selection == 4 ? 1 : (specimen_selection == 5 ? 2 : specimen_selection)" },
+    preset_dim: {
+      id: "preset_dim",
+      expression: "specimen_selection == 2 ? 4.50 : (specimen_selection == 3 ? 1.80 : (specimen_selection == 4 ? 1.92 : (specimen_selection == 5 ? 3.10 : 2.34)))",
+    },
     raw_reading: { id: "raw_reading", expression: "specimen_dimension + zero_error_cm" },
     main_scale_reading: { id: "main_scale_reading", expression: "floor(raw_reading * 10) / 10" },
     vernier_coincidence: { id: "vernier_coincidence", expression: "round((raw_reading - main_scale_reading) / 0.01)" },
@@ -72,7 +77,7 @@ export const vernierCaliperPreset: UniversalPhysicsSpec = {
       xExpression: "0",
       yExpression: "0",
       properties: {
-        gapExpression: "specimen_dimension",
+        gapExpression: "observed_reading",
         scaleFactor: 28,
       },
     },

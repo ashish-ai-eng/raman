@@ -65,7 +65,43 @@ function tokenize(expression: string): Token[] {
       continue;
     }
 
-    if (["+", "-", "*", "/", "^", "%"].includes(char)) {
+    if (char === "=" && expression[i + 1] === "=") {
+      tokens.push({ type: "OPERATOR", value: "==" });
+      i += 2;
+      continue;
+    }
+
+    if (char === "<" && expression[i + 1] === "=") {
+      tokens.push({ type: "OPERATOR", value: "<=" });
+      i += 2;
+      continue;
+    }
+
+    if (char === ">" && expression[i + 1] === "=") {
+      tokens.push({ type: "OPERATOR", value: ">=" });
+      i += 2;
+      continue;
+    }
+
+    if (char === "!" && expression[i + 1] === "=") {
+      tokens.push({ type: "OPERATOR", value: "!=" });
+      i += 2;
+      continue;
+    }
+
+    if (char === "<") {
+      tokens.push({ type: "OPERATOR", value: "<" });
+      i++;
+      continue;
+    }
+
+    if (char === ">") {
+      tokens.push({ type: "OPERATOR", value: ">" });
+      i++;
+      continue;
+    }
+
+    if (["+", "-", "*", "/", "^", "%", "?", ":"].includes(char)) {
       tokens.push({ type: "OPERATOR", value: char });
       i++;
       continue;
@@ -131,6 +167,47 @@ class Parser {
   }
 
   private parseExpression(): number {
+    return this.parseTernary();
+  }
+
+  private parseTernary(): number {
+    const condition = this.parseComparison();
+
+    if (this.peek() && this.peek()?.value === "?") {
+      this.consume(); // ?
+      const trueBranch = this.parseExpression();
+      if (this.peek()?.value !== ":") {
+        throw new Error("Missing ':' in ternary expression.");
+      }
+      this.consume(); // :
+      const falseBranch = this.parseExpression();
+      return condition ? trueBranch : falseBranch;
+    }
+
+    return condition;
+  }
+
+  private parseComparison(): number {
+    let left = this.parseAdditive();
+
+    while (
+      this.peek() &&
+      ["==", "!=", "<", ">", "<=", ">="].includes(String(this.peek()?.value))
+    ) {
+      const op = this.consume().value;
+      const right = this.parseAdditive();
+      if (op === "==") left = left === right ? 1 : 0;
+      else if (op === "!=") left = left !== right ? 1 : 0;
+      else if (op === "<") left = left < right ? 1 : 0;
+      else if (op === ">") left = left > right ? 1 : 0;
+      else if (op === "<=") left = left <= right ? 1 : 0;
+      else if (op === ">=") left = left >= right ? 1 : 0;
+    }
+
+    return left;
+  }
+
+  private parseAdditive(): number {
     let left = this.parseTerm();
 
     while (this.peek() && (this.peek()?.value === "+" || this.peek()?.value === "-")) {

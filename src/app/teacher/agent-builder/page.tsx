@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { UniversalPhysicsSpec, UPREquation } from "@/types/upr";
+import { CORE_EXPERIMENTAL_PRESETS } from "@/presets";
 import { simplePendulumPreset } from "@/lib/engine/presets";
 import { LabChatInterface } from "@/components/agent/LabChatInterface";
 import { FormulaInspector } from "@/components/agent/FormulaInspector";
@@ -18,6 +19,8 @@ export default function AgentBuilderPage() {
     }));
   };
 
+  const presetList = Object.values(CORE_EXPERIMENTAL_PRESETS);
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Top Banner */}
@@ -27,7 +30,7 @@ export default function AgentBuilderPage() {
             Teacher Generative AI Studio — Custom Physics Lab & Widget Authoring
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Converse with the AI Assistant to design custom physics experiments and supervise AI-generated math formulas.
+            Select an available experiment preset or converse with the AI Assistant.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -51,6 +54,46 @@ export default function AgentBuilderPage() {
           >
             📐 Edit Physics Formulas
           </button>
+        </div>
+      </div>
+
+      {/* Available Presets Grid Cards */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+          Available Experiment Presets
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {presetList.map((preset) => {
+            const isSelected = activeSpec.id.startsWith(preset.id) || activeSpec.name === preset.name;
+            return (
+              <div
+                key={preset.id}
+                onClick={() => setActiveSpec(preset)}
+                className={`cursor-pointer rounded-xl p-4 border transition-all shadow-sm hover:shadow-md flex flex-col justify-between ${
+                  isSelected
+                    ? "bg-brand-50/80 border-brand-500 ring-2 ring-brand-500/20"
+                    : "bg-white border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h3 className="font-bold text-slate-900 text-xs">{preset.name}</h3>
+                    {isSelected && (
+                      <span className="text-[10px] font-bold bg-brand-600 text-white px-2 py-0.5 rounded-full">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-600 line-clamp-2 leading-snug">
+                    {preset.description}
+                  </p>
+                </div>
+                <div className="mt-3 text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                  <span>ID: {preset.id}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

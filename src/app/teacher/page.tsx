@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { LabSpec } from "@/types/labSpec";
-import { simplePendulumPreset, opticsBenchPreset, ohmsLawPreset } from "@/lib/engine/presets";
+import { simplePendulumPreset, vernierCaliperPreset, ohmsLawPreset } from "@/lib/engine/presets";
 import { AnalyticsOverview } from "@/components/teacher/AnalyticsOverview";
 
 // Initial sample seed labs for Teacher Dashboard
@@ -57,43 +57,59 @@ const INITIAL_LABS: LabSpec[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: "optics-201",
-    title: "Optics Bench — Convex Lens Focal Length (f)",
-    topic: "Geometric Optics",
-    conceptSummary: "Determine focal length f using object distance u and image distance v relationship.",
-    funFacts: ["Convex lenses form real inverted images when u > f!"],
-    widget: opticsBenchPreset,
+    id: "vernier-201",
+    title: "Vernier Caliper — Precision Length & Thickness Measurement",
+    topic: "Vernier Measurement",
+    conceptSummary: "Determine dimension of a specimen using main scale reading (MSR) and vernier scale division (VSD).",
+    funFacts: ["Vernier calipers resolve measurements down to 0.1 mm or 0.01 cm!"],
+    widget: vernierCaliperPreset,
     observationSchema: {
-      parametersToRecord: ["object_distance_u", "image_distance_v"],
+      parametersToRecord: ["msr", "vsd"],
       calculatedValues: [],
       graphConfig: {
-        xAxisKey: "inv_u",
-        yAxisKey: "inv_v",
-        xAxisLabel: "1/u (cm⁻¹)",
-        yAxisLabel: "1/v (cm⁻¹)",
-        extractedConstantLabel: "Focal Length f",
-        extractedConstantFormula: "1 / intercept",
+        xAxisKey: "specimen_dimension",
+        yAxisKey: "corrected",
+        xAxisLabel: "Dimension (cm)",
+        yAxisLabel: "Measured Reading (cm)",
       },
     },
     steps: [
       {
         stepNumber: 1,
-        instruction: "Set object distance u to 30 cm and record image distance v on screen.",
+        instruction: "Adjust specimen dimension and record Main Scale Reading (MSR) and Vernier Scale Division (VSD).",
         idealAnswerType: "numeric",
-        idealAnswerFormulaOrValue: 30,
+        idealAnswerFormulaOrValue: 2.34,
         tolerancePercent: 5,
-        hint: "Adjust screen position until image is sharp.",
+        hint: "Align vernier mark accurately with main scale mark.",
       },
     ],
     challenges: [],
-    status: "draft",
+    status: "published",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
 ];
 
 export default function TeacherDashboard() {
-  const [labs] = useState<LabSpec[]>(INITIAL_LABS);
+  const [publishedIds, setPublishedIds] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem("philab_published_ids");
+      if (stored) {
+        setPublishedIds(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const labs = INITIAL_LABS.map((lab) => {
+    if (publishedIds.includes(lab.id)) {
+      return { ...lab, status: "published" as const };
+    }
+    return lab;
+  });
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-10 space-y-8 max-w-7xl mx-auto">

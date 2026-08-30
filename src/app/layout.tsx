@@ -3,7 +3,7 @@ import React from "react";
 import { Navbar } from "@/components/layout/Navbar";
 
 export const metadata = {
-  title: "PhysLab Studio",
+  title: "PhiLab Studio",
   description: "Generative Physics Lab Studio & Interactive Companion",
 };
 

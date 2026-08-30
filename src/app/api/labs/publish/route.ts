@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { LabSpec } from "@/types/labSpec";
-import { simplePendulumPreset } from "@/lib/engine/presets";
+import { simplePendulumPreset, vernierCaliperPreset } from "@/lib/engine/presets";
 
 // In-memory lab store simulation for API routes
 const MOCK_LAB_DB: Record<string, LabSpec> = {
@@ -36,6 +36,38 @@ const MOCK_LAB_DB: Record<string, LabSpec> = {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  "vernier-201": {
+    id: "vernier-201",
+    title: "Vernier Caliper — Precision Length & Thickness Measurement",
+    topic: "Vernier Measurement",
+    conceptSummary: "Determine dimension of a specimen using main scale reading (MSR) and vernier scale division (VSD).",
+    funFacts: ["Vernier calipers resolve measurements down to 0.1 mm or 0.01 cm!"],
+    widget: vernierCaliperPreset,
+    observationSchema: {
+      parametersToRecord: ["msr", "vsd"],
+      calculatedValues: [],
+      graphConfig: {
+        xAxisKey: "specimen_dimension",
+        yAxisKey: "corrected",
+        xAxisLabel: "Dimension (cm)",
+        yAxisLabel: "Measured Reading (cm)",
+      },
+    },
+    steps: [
+      {
+        stepNumber: 1,
+        instruction: "Adjust specimen dimension and record Main Scale Reading (MSR) and Vernier Scale Division (VSD).",
+        idealAnswerType: "numeric",
+        idealAnswerFormulaOrValue: 2.34,
+        tolerancePercent: 5,
+        hint: "Align vernier mark accurately with main scale mark.",
+      },
+    ],
+    challenges: [],
+    status: "published",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 };
 
 export async function POST(req: Request) {
@@ -47,10 +79,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required labId parameter." }, { status: 400 });
     }
 
-    const lab = MOCK_LAB_DB[labId] || {
-      ...MOCK_LAB_DB["pendulum-101"],
-      id: labId,
-    };
+    const lab = MOCK_LAB_DB[labId];
+
+    if (!lab) {
+      return NextResponse.json({ error: `Lab with ID '${labId}' not found.` }, { status: 404 });
+    }
 
     // Promote status draft -> published
     lab.status = "published";

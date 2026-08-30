@@ -77,13 +77,32 @@ export const DynamicWidgetRunner: React.FC<DynamicWidgetRunnerProps> = ({
       time: simTime,
     };
 
-    const state = evaluateUniversalSpec(activeSpec, overrides);
-    if (onStateChange) onStateChange(state);
-    return state;
-  }, [spec, inputValues, zeroErrorOffset, simTime, onStateChange]);
+    return evaluateUniversalSpec(activeSpec, overrides);
+  }, [spec, inputValues, zeroErrorOffset, simTime]);
+
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange(evalState);
+    }
+  }, [evalState, onStateChange]);
 
   const handleInputChange = (key: string, val: number) => {
-    setInputValues((prev) => ({ ...prev, [key]: val }));
+    setInputValues((prev) => {
+      const updated = { ...prev, [key]: val };
+      if (key === "specimen_selection" && "specimen_dimension" in spec.inputs) {
+        const presetDims: Record<number, number> = {
+          1: 2.34,
+          2: 4.50,
+          3: 1.80,
+          4: 1.92,
+          5: 3.10,
+        };
+        if (presetDims[val] !== undefined) {
+          updated["specimen_dimension"] = presetDims[val];
+        }
+      }
+      return updated;
+    });
   };
 
   const evalContext: Record<string, number> = {

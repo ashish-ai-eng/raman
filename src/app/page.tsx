@@ -17,7 +17,7 @@ export default function Home() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-brand-600 tracking-tight">
-            PhysLab Studio
+            PhiLab Studio
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Universal Interactive Physics Engine & Generative AI Studio

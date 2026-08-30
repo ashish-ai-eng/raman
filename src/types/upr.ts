@@ -60,6 +60,7 @@ export interface DynamicSVGNode {
     fill?: string;
     stroke?: string;
     strokeWidth?: string;
+    strokeDasharray?: string;
     transform?: string;
     fontSize?: string;
     textAnchor?: string;

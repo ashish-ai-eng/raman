@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { LabSpec } from "@/types/labSpec";
-import { simplePendulumPreset, opticsBenchPreset } from "@/lib/engine/presets";
+import { simplePendulumPreset, vernierCaliperPreset } from "@/lib/engine/presets";
 import { DynamicWidgetRunner } from "@/components/widgets/DynamicWidgetRunner";
 
 const LAB_STORE: Record<string, LabSpec> = {
@@ -56,37 +56,35 @@ const LAB_STORE: Record<string, LabSpec> = {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  "optics-201": {
-    id: "optics-201",
-    title: "Optics Bench — Convex Lens Focal Length (f)",
-    topic: "Geometric Optics",
-    conceptSummary: "Determine focal length f using object distance u and image distance v relationship.",
-    funFacts: ["Convex lenses form real inverted images when u > f!"],
-    widget: opticsBenchPreset,
+  "vernier-201": {
+    id: "vernier-201",
+    title: "Vernier Caliper — Precision Length & Thickness Measurement",
+    topic: "Vernier Measurement",
+    conceptSummary: "Determine dimension of a specimen using main scale reading (MSR) and vernier scale division (VSD).",
+    funFacts: ["Vernier calipers resolve measurements down to 0.1 mm or 0.01 cm!"],
+    widget: vernierCaliperPreset,
     observationSchema: {
-      parametersToRecord: ["object_distance_u", "image_distance_v"],
+      parametersToRecord: ["msr", "vsd"],
       calculatedValues: [],
       graphConfig: {
-        xAxisKey: "inv_u",
-        yAxisKey: "inv_v",
-        xAxisLabel: "1/u (cm⁻¹)",
-        yAxisLabel: "1/v (cm⁻¹)",
-        extractedConstantLabel: "Focal Length f",
-        extractedConstantFormula: "1 / intercept",
+        xAxisKey: "specimen_dimension",
+        yAxisKey: "corrected",
+        xAxisLabel: "Dimension (cm)",
+        yAxisLabel: "Measured Reading (cm)",
       },
     },
     steps: [
       {
         stepNumber: 1,
-        instruction: "Set object distance u to 30 cm and record image distance v on screen.",
+        instruction: "Adjust specimen dimension and record Main Scale Reading (MSR) and Vernier Scale Division (VSD).",
         idealAnswerType: "numeric",
-        idealAnswerFormulaOrValue: 30,
+        idealAnswerFormulaOrValue: 2.34,
         tolerancePercent: 5,
-        hint: "Adjust screen position until image is sharp.",
+        hint: "Align vernier mark accurately with main scale mark.",
       },
     ],
     challenges: [],
-    status: "draft",
+    status: "published",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -111,6 +109,18 @@ export default function VerificationSandboxPage() {
       if (data.lab) {
         setLab(data.lab);
         setAccessCode(data.accessCode);
+
+        // Update local storage so teacher dashboard reflects published status
+        try {
+          const stored = localStorage.getItem("philab_published_ids");
+          const ids = stored ? JSON.parse(stored) : [];
+          if (!ids.includes(labId)) {
+            ids.push(labId);
+            localStorage.setItem("philab_published_ids", JSON.stringify(ids));
+          }
+        } catch {
+          // ignore localStorage errors
+        }
       }
     } catch {
       alert("Failed to publish lab.");
