@@ -29,7 +29,7 @@ export const Navbar: React.FC = () => {
         </Link>
 
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-hide md:flex-wrap">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
